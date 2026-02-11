@@ -4,24 +4,19 @@ import uvicorn
 
 app = FastAPI()
 
-
 @app.get("/")
-async def health_check():
-    return {"status": "online", "message": "Background remover is ready"}
+async def root():
+    return {"message": "Background Remover API is Running"}
 
 
 @app.post("/remove-bg")
 async def remove_background(file: UploadFile = File(...)):
     from rembg import remove
+    from fastapi.responses import Response
 
-    # Read the uploaded file bytes
     input_bytes = await file.read()
-
-    # Process the image
     output_bytes = remove(input_bytes)
 
-    # Return the result
-    from fastapi.responses import Response
     return Response(content=output_bytes, media_type="image/png")
 
 if __name__ == "__main__":
