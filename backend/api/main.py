@@ -1,21 +1,23 @@
 from fastapi import FastAPI, UploadFile, File
-from fastapi.responses import Response
-import os
+from rembg import remove
+from PIL import Image
+import io
 
 app = FastAPI()
 
-
-@app.get("/")
-async def health():
+@app.get("/health")
+def health():
     return {"status": "ok"}
 
-
 @app.post("/remove-bg")
-async def remove_background(file: UploadFile = File(...)):
-    # Import inside the function to save memory on boot
-    from rembg import remove
+async def remove_bg(file: UploadFile = File(...)):
+    image_bytes = await file.read()
+    image = Image.open(io.BytesIO(image_bytes))
 
-    input_bytes = await file.read()
-    output_bytes = remove(input_bytes)
+    output = remove(image)
 
-    return Response(content=output_bytes, media_type="image/png")
+    buffer = io.BytesIO()
+    output.save(buffer, format="PNG")
+    buffer.seek(0)
+
+    return buffer.getvalue()
