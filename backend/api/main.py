@@ -9,7 +9,7 @@ from PIL import Image
 
 app = FastAPI()
 
-# 1. Enable CORS so your browser doesn't block the request
+# 1. CORS Middleware: Crucial for the frontend to talk to the backend
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -18,21 +18,20 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 2. Setup Paths
-# This looks for the 'frontend' folder one level up from the 'api' folder
+# 2. Path Setup: Finds the frontend folder relative to this file
+# BASE_DIR is 'background-remover/', FRONTEND_DIR is 'background-remover/frontend'
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FRONTEND_DIR = os.path.join(BASE_DIR, "frontend")
 
 
-# 3. Serve the index.html at the root URL (https://your-app.onrender.com/)
+# 3. Serve index.html: Fixes the {"detail":"Not Found"} error
 @app.get("/")
 async def read_index():
     index_path = os.path.join(FRONTEND_DIR, "index.html")
     return FileResponse(index_path)
 
 
-# 4. Mount the frontend folder to serve styles.css and app.js
-# These will be accessible at /frontend/styles.css etc.
+# 4. Static Files: Allows the browser to load styles.css and app.js
 app.mount("/frontend", StaticFiles(directory=FRONTEND_DIR), name="frontend")
 
 
@@ -41,18 +40,16 @@ def health():
     return {"status": "ok"}
 
 
-# 5. The Background Removal Logic
+# 5. Background Removal Logic
 @app.post("/remove-bg")
 async def remove_bg(file: UploadFile = File(...)):
     try:
-        # Read uploaded file
         image_bytes = await file.read()
         input_image = Image.open(io.BytesIO(image_bytes))
 
-        # Remove background
+        # This is where onnxruntime is used internally by rembg
         output_image = remove(input_image)
 
-        # Save result to a byte stream
         buffer = io.BytesIO()
         output_image.save(buffer, format="PNG")
         buffer.seek(0)
