@@ -1,21 +1,83 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <title>Background Remover</title>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Background Remover</title>
     <link rel="stylesheet" href="/frontend/styles.css">
-  </head>
-  <body>
-    <h1>Background Remover</h1>
+    <style>
+        /* Basic layout styling to ensure elements don't overlap */
+        body {
+            font-family: sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 50px;
+            background-color: #1a1a1a;
+            color: white;
+        }
+        .container {
+            max-width: 600px;
+            text-align: center;
+            background: #2d2d2d;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        #resultImage {
+            max-width: 100%;
+            margin-top: 20px;
+            border-radius: 8px;
+            display: block;
+        }
+        #downloadLink {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        #downloadLink:hover {
+            background-color: #0056b3;
+        }
+        button {
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+        input[type="file"] {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
 
-    <input type="file" id="imageInput" />
-    <button id="removeBtn">Remove Background</button>
+    <div class="container">
+        <h1>Background Remover</h1>
+        <p>Powered by remove.bg API</p>
 
-    <div class="result">
-      <img id="resultImage" />
+        <input type="file" id="imageInput" accept="image/*" />
+
+        <button id="removeBtn">Remove Background</button>
+
+        <div class="result-container">
+            <img id="resultImage" alt="Your processed image will appear here" />
+        </div>
+
+        <a id="downloadLink" style="display: none;">Download Image</a>
     </div>
 
-    <a id="downloadLink" download>Download Image</a>
-
     <script src="/frontend/app.js"></script>
-  </body>
+</body>
 </html>
