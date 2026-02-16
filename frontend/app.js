@@ -25,15 +25,11 @@ removeBtn.addEventListener("click", async () => {
       body: formData,
     });
 
-    if (!response.ok) throw new Error("Server error. It might be out of memory!");
-
-    const blob = await response.blob();
-    const imageUrl = URL.createObjectURL(blob);
-
-    resultImage.src = imageUrl;
-    downloadLink.href = imageUrl;
-    downloadLink.style.display = "inline";
-    downloadLink.download = "no-bg-image.png"; // Suggests a filename for download
+    if (!response.ok) {
+        // Try to get the specific error message from your Python 'except' block
+        const errorDetail = await response.json();
+        throw new Error(errorDetail.error || "Server error occurred");
+    }
 
   } catch (error) {
     console.error(error);
