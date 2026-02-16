@@ -9,8 +9,6 @@ from PIL import Image
 
 app = FastAPI()
 
-# Pre-load the TINY model to save RAM and time
-# 'u2netp' is the lightweight version of the background remover
 session = new_session("u2netp")
 
 app.add_middleware(
