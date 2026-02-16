@@ -8,6 +8,23 @@ from fastapi.responses import FileResponse, Response
 
 app = FastAPI()
 
+origins = [
+    "http://127.0.0.1:5500",
+    "http://localhost:5500",
+]
+
+production_url = os.getenv("RENDER_EXTERNAL_URL")
+if production_url:
+    origins.append(production_url)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["GET", "POST"],
+    allow_headers=["*"],
+)
+
 REMOVE_BG_API_KEY = os.getenv("REMOVE_BG_API_KEY")
 
 app.add_middleware(
