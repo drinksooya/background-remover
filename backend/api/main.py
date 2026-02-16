@@ -8,7 +8,7 @@ from fastapi.responses import FileResponse, Response
 
 app = FastAPI()
 
-REMOVE_BG_API_KEY = "Ui6F69dsHJjoJgEukn1TRW6v"
+REMOVE_BG_API_KEY = os.getenv("REMOVE_BG_API_KEY")
 
 app.add_middleware(
     CORSMiddleware,
