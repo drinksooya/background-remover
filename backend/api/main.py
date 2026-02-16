@@ -1,18 +1,14 @@
 import os
 import io
-import gc  # Garbage collector to force memory release
+import requests
 from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, Response
-from rembg import remove, new_session
-from PIL import Image
 
 app = FastAPI()
 
-# Initialize the tiny model session globally
-# u2netp is ~4MB on disk vs u2net's ~176MB
-session = new_session("u2netp")
+REMOVE_BG_API_KEY = "Ui6F69dsHJjoJgEukn1TRW6v"
 
 app.add_middleware(
     CORSMiddleware,
@@ -25,51 +21,36 @@ app.add_middleware(
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 FRONTEND_DIR = os.path.join(BASE_DIR, "frontend")
 
-
 @app.get("/")
 async def read_index():
     index_path = os.path.join(FRONTEND_DIR, "index.html")
-    if os.path.exists(index_path):
-        return FileResponse(index_path)
-    return {"error": "Frontend not found"}
-
+    return FileResponse(index_path) if os.path.exists(index_path) else {"error": "Frontend not found"}
 
 if os.path.exists(FRONTEND_DIR):
     app.mount("/frontend", StaticFiles(directory=FRONTEND_DIR), name="frontend")
 
-
 @app.post("/remove-bg")
 async def remove_bg(file: UploadFile = File(...)):
-    input_image = None
-    output_image = None
     try:
+        # Read the uploaded file
         image_bytes = await file.read()
-        input_image = Image.open(io.BytesIO(image_bytes))
 
-        # 1. AGGRESSIVE RESIZE
-        # 600px is the "Safe Zone" for 512MB RAM
-        if max(input_image.size) > 600:
-            input_image.thumbnail((600, 600), Image.Resampling.LANCZOS)
+        # Forward the image to remove.bg API
+        response = requests.post(
+            'https://api.remove.bg/v1.0/removebg',
+            files={'image_file': image_bytes},
+            data={'size': 'auto'}, # 'auto' is free for previews
+            headers={'X-Api-Key': REMOVE_BG_API_KEY},
+        )
 
-        # 2. REMOVE BACKGROUND
-        output_image = remove(input_image, session=session)
-
-        # 3. CONVERT TO BYTES
-        buffer = io.BytesIO()
-        output_image.save(buffer, format="PNG")
-        result = buffer.getvalue()
-
-        return Response(content=result, media_type="image/png")
+        if response.status_code == requests.codes.ok:
+            # Send the resulting PNG back to your frontend
+            return Response(content=response.content, media_type="image/png")
+        else:
+            return {"error": f"API Error {response.status_code}: {response.text}"}
 
     except Exception as e:
         return {"error": str(e)}
-    finally:
-        # 4. EXPLICIT CLEANUP
-        # This tells Python: "I am done with these huge objects, get them out of RAM!"
-        del input_image
-        del output_image
-        gc.collect()
-
 
 @app.get("/health")
 def health():
