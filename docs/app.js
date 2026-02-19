@@ -23,12 +23,9 @@ removeBtn.addEventListener("click", async () => {
   formData.append("file", file);
 
   try {
-    // 2. Request to your Render Backend
-    // Added 'mode: cors' to ensure the browser handles the cross-origin request correctly
     const response = await fetch("https://background-remover-x6cw.onrender.com/remove-bg", {
-      method: "POST",
-      body: formData,
-      mode: "cors"
+    method: "POST",
+    body: formData,
     });
 
     // 3. Specific Error Handling
