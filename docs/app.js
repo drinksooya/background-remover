@@ -17,23 +17,33 @@ removeBtn.addEventListener("click", async () => {
   // 1. UI Feedback
   removeBtn.disabled = true;
   removeBtn.innerText = "Processing with AI...";
-  resultImage.style.opacity = "0.5"; // Dim the old image while loading
+  resultImage.style.opacity = "0.5";
 
   const formData = new FormData();
   formData.append("file", file);
 
   try {
     // 2. Request to your Render Backend
+    // Added 'mode: cors' to ensure the browser handles the cross-origin request correctly
     const response = await fetch("https://background-remover-x6cw.onrender.com/remove-bg", {
       method: "POST",
       body: formData,
+      mode: "cors"
     });
 
     // 3. Specific Error Handling
     if (!response.ok) {
-        const errorData = await response.json();
-        // This will tell you if the API key is invalid or out of credits
-        throw new Error(errorData.error || "Server error occurred");
+        // If the server sends a JSON error message, we show it.
+        // Otherwise, we throw a generic error.
+        let errorMessage = "Server error occurred";
+        try {
+            const errorData = await response.json();
+            errorMessage = errorData.error || errorMessage;
+        } catch (e) {
+            // If response isn't JSON (like a 504 Gateway Timeout while Render wakes up)
+            errorMessage = `Status ${response.status}: Server is likely waking up. Please try again in 30 seconds.`;
+        }
+        throw new Error(errorMessage);
     }
 
     // 4. Handle the successful image blob
@@ -48,7 +58,7 @@ removeBtn.addEventListener("click", async () => {
     downloadLink.href = imageUrl;
     downloadLink.download = "removed-background.png";
     downloadLink.innerText = "Download your result!";
-    downloadLink.style.display = "block"; // Show the link now that it's ready
+    downloadLink.style.display = "block";
 
   } catch (error) {
     console.error("Full Error Context:", error);

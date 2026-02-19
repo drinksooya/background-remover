@@ -37,7 +37,7 @@ app.add_middleware(
 )
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-FRONTEND_DIR = os.path.join(BASE_DIR, "frontend")
+FRONTEND_DIR = os.path.join(BASE_DIR, "docs")
 
 @app.get("/")
 async def read_index():
@@ -45,7 +45,7 @@ async def read_index():
     return FileResponse(index_path) if os.path.exists(index_path) else {"error": "Frontend not found"}
 
 if os.path.exists(FRONTEND_DIR):
-    app.mount("/frontend", StaticFiles(directory=FRONTEND_DIR), name="frontend")
+    app.mount("/docs", StaticFiles(directory=FRONTEND_DIR), name="docs")
 
 @app.post("/remove-bg")
 async def remove_bg(file: UploadFile = File(...)):
@@ -62,7 +62,7 @@ async def remove_bg(file: UploadFile = File(...)):
         )
 
         if response.status_code == requests.codes.ok:
-            # Send the resulting PNG back to your frontend
+            # Send the resulting PNG back to your docs
             return Response(content=response.content, media_type="image/png")
         else:
             return {"error": f"API Error {response.status_code}: {response.text}"}
